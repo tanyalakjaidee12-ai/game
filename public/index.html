@@ -1,0 +1,1320 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#160F2C">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20100%20100%22%3E%3Cpath%20d%3D%22M20%2092V46C20%2025%2033%2012%2050%2012S80%2025%2080%2046V92Q72.5%2084%2065%2092Q57.5%20100%2050%2092Q42.5%2084%2035%2092Q27.5%20100%2020%2092Z%22%20fill%3D%22%23F6F3FF%22%20stroke%3D%22%232A1F45%22%20stroke-width%3D%225%22%2F%3E%3Cellipse%20cx%3D%2240%22%20cy%3D%2246%22%20rx%3D%225%22%20ry%3D%227%22%20fill%3D%22%232A1F45%22%2F%3E%3Cellipse%20cx%3D%2260%22%20cy%3D%2246%22%20rx%3D%225%22%20ry%3D%227%22%20fill%3D%22%232A1F45%22%2F%3E%3Cellipse%20cx%3D%2250%22%20cy%3D%2261%22%20rx%3D%224%22%20ry%3D%225%22%20fill%3D%22%232A1F45%22%2F%3E%3C%2Fsvg%3E">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>แตะให้ได้ ถ้าไม่อยากโดนหลอก</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="เกมแตะจับผีฮาโลวีนบนมือถือ แตะผีให้ทันก่อนมันมุดหนี และระวังแมวดำมาหลอก">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Itim&family=Mali:wght@500;600;700&display=swap">
+<style>
+/* Layout: one-screen night graveyard. Menu and results scroll inside their screen; the game is a two-row HUD above a 3x3 board sized to fit. Single dark theme by design. */
+:root {
+  --sky-top: #160F2C;
+  --sky-mid: #2B1B4E;
+  --sky-low: #45286B;
+  --hill-back: #2A1D4F;
+  --hill-front: #1C1636;
+  --ink: #FFF5E3;
+  --muted: #C4B3E6;
+  --line: #2A1F45;
+  --pumpkin: #FF8A2B;
+  --pumpkin-deep: #B9531B;
+  --on-pumpkin: #3A1606;
+  --candy: #FF6FAE;
+  --gold: #FFD447;
+  --on-gold: #3B2A00;
+  --danger: #FF5468;
+  --panel: #251A45;
+  --panel-line: #45357A;
+  --scrim: rgba(14, 8, 26, 0.62);
+  --dirt: #4E3328;
+  --dirt-hi: #6E4A39;
+  --pit: #120A17;
+  --rim: #8C624C;
+  --stone: #77709A;
+  --stone-dark: #565078;
+  --font-display: "Itim", "Mali", "Noto Sans Thai", "Leelawadee UI", "Thonburi", system-ui, sans-serif;
+  --font-body: "Mali", "Noto Sans Thai", "Leelawadee UI", "Thonburi", system-ui, sans-serif;
+  color-scheme: dark;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html { height: 100%; background: var(--sky-top); }
+body {
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+  overscroll-behavior: none;
+  background: var(--sky-top);
+  color: var(--ink);
+  font: 500 16px/1.6 var(--font-body);
+  -webkit-text-size-adjust: 100%;
+}
+button { font: inherit; color: inherit; }
+button:focus-visible { outline: 3px solid var(--gold); outline-offset: 3px; }
+
+/* ---------- night scene ---------- */
+.scene {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  background: linear-gradient(180deg, var(--sky-top) 0%, var(--sky-mid) 52%, var(--sky-low) 100%);
+}
+.stars { position: absolute; inset: 0 0 auto 0; width: 100%; height: 60%; }
+.stars circle { fill: var(--ink); opacity: 0.55; }
+.moon {
+  position: absolute;
+  top: 15%;
+  right: 8%;
+  width: min(26vw, 150px);
+  aspect-ratio: 1;
+  max-width: 100%;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 34% 38%, rgba(160, 120, 70, 0.16) 0 9%, transparent 10%),
+    radial-gradient(circle at 64% 62%, rgba(160, 120, 70, 0.14) 0 12%, transparent 13%),
+    radial-gradient(circle at 60% 27%, rgba(160, 120, 70, 0.12) 0 6%, transparent 7%),
+    radial-gradient(circle at 40% 40%, #FFF9E6, #F6DFA0 75%);
+  box-shadow: 0 0 70px 18px rgba(255, 226, 150, 0.15);
+}
+.bat { position: absolute; left: 0; width: 44px; fill: #120B22; animation: fly 24s linear infinite; }
+.bat path { transform-box: fill-box; transform-origin: center; animation: flap 0.28s ease-in-out infinite alternate; }
+.bat-1 { top: 11%; animation-delay: -5s; }
+.bat-2 { top: 23%; width: 30px; animation-duration: 33s; animation-delay: -19s; }
+.hills { position: absolute; left: 0; bottom: 0; width: 100%; height: 34%; }
+.hill-back { fill: var(--hill-back); }
+.hill-front { fill: var(--hill-front); }
+@keyframes fly {
+  0% { transform: translate(-60px, 0); }
+  25% { transform: translate(25vw, -14px); }
+  50% { transform: translate(50vw, 6px); }
+  75% { transform: translate(75vw, -10px); }
+  100% { transform: translate(calc(100vw + 60px), 0); }
+}
+@keyframes flap { to { transform: scaleY(0.45); } }
+
+/* ---------- screens ---------- */
+#app { position: relative; z-index: 1; height: 100%; }
+.screen {
+  position: relative;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 12px;
+}
+.scroll { overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
+
+.icon-btn {
+  flex: none;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 14px;
+  border: 2px solid var(--panel-line);
+  background: var(--panel);
+  color: var(--ink);
+  cursor: pointer;
+}
+.icon-btn svg { width: 22px; height: 22px; display: block; }
+
+.btn-primary, .btn-ghost {
+  display: block;
+  width: 100%;
+  border-radius: 999px;
+  cursor: pointer;
+  font-family: var(--font-display);
+  font-weight: 400;
+  line-height: 1.1;
+}
+.btn-primary {
+  padding: 15px 24px 14px;
+  border: 0;
+  background: var(--pumpkin);
+  color: var(--on-pumpkin);
+  font-size: 1.45rem;
+  box-shadow: 0 5px 0 var(--pumpkin-deep);
+  transition: transform 0.08s, box-shadow 0.08s;
+}
+.btn-primary:active { transform: translateY(4px); box-shadow: 0 1px 0 var(--pumpkin-deep); }
+.btn-ghost {
+  padding: 12px 24px;
+  border: 2px solid var(--panel-line);
+  background: transparent;
+  color: var(--ink);
+  font-size: 1.15rem;
+}
+
+/* ---------- menu ---------- */
+.menu-inner {
+  width: 100%;
+  max-width: 460px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding-bottom: 8px;
+}
+.menu-top { display: flex; justify-content: space-between; align-items: center; }
+.eyebrow {
+  margin: 0;
+  font: 600 0.75rem/1 var(--font-body);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.title-block { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 4px; }
+h1 { margin: 0; font-family: var(--font-display); font-weight: 400; line-height: 1.05; text-wrap: balance; }
+h1 .t1 { display: block; font-size: clamp(2.7rem, 14vw, 3.7rem); color: var(--pumpkin); text-shadow: 0 4px 0 var(--pumpkin-deep); }
+h1 .t2 { display: block; margin-top: 8px; font-size: clamp(1.3rem, 6.2vw, 1.7rem); color: var(--ink); }
+.mascot { width: clamp(84px, 27vw, 124px); animation: bob 2.6s ease-in-out infinite; }
+.mascot svg { display: block; width: 100%; height: auto; overflow: visible; }
+@keyframes bob { 0%, 100% { transform: translateY(0) rotate(-3deg); } 50% { transform: translateY(-10px) rotate(3deg); } }
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 16px;
+  border-radius: 22px;
+  border: 2px solid var(--panel-line);
+  background: var(--panel);
+}
+.panel-title { margin: 0; font: 400 1.3rem/1.2 var(--font-display); }
+
+.levels { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.level {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 10px 4px 8px;
+  border-radius: 16px;
+  border: 2px solid var(--panel-line);
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+}
+.lv-name { font: 400 1.3rem/1.2 var(--font-display); }
+.lv-best { font-size: 0.75rem; line-height: 1.4; color: var(--muted); }
+.lv-best b { font-weight: 700; font-variant-numeric: tabular-nums; }
+.level.on { background: var(--pumpkin); border-color: var(--pumpkin); color: var(--on-pumpkin); }
+.level.on .lv-best { color: var(--on-pumpkin); }
+
+.how-lead { margin: 0; font-size: 0.95rem; }
+.cast { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.cast li { display: grid; grid-template-columns: 52px minmax(0, 1fr); align-items: center; gap: 12px; }
+.cast-art { width: 52px; height: 52px; padding: 4px; border-radius: 14px; background: var(--sky-top); }
+.cast-art svg { display: block; width: 100%; height: 100%; }
+.cast-text { display: flex; flex-direction: column; line-height: 1.35; }
+.cast-text b { font: 400 1.1rem/1.3 var(--font-display); }
+.cast-text span { font-size: 0.88rem; color: var(--muted); }
+.cast-text .warn { color: var(--danger); font-weight: 700; }
+.how-note { margin: 0; font-size: 0.85rem; color: var(--muted); }
+
+/* ---------- game ---------- */
+#game {
+  gap: 8px;
+  padding-block: 8px 12px;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+.hud { display: flex; flex-direction: column; gap: 8px; }
+.hud-row { display: flex; align-items: center; gap: 10px; }
+.score-box { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center; line-height: 1; }
+.score-box .label { font-size: 0.75rem; line-height: 1.4; color: var(--muted); }
+.score { font: 400 2.3rem/1 var(--font-display); font-variant-numeric: tabular-nums; }
+.lives { display: flex; gap: 2px; }
+.heart svg { display: block; width: 24px; height: 24px; fill: var(--candy); stroke: var(--line); stroke-width: 1.5; }
+.heart.lost svg { fill: transparent; stroke: var(--muted); opacity: 0.45; }
+.heart.just { animation: heartLose 0.5s ease-out; }
+.heart.gain { animation: heartGain 0.5s cubic-bezier(0.34, 1.56, 0.64, 1); }
+@keyframes heartLose { 0% { transform: scale(1.5); } 100% { transform: scale(1); } }
+@keyframes heartGain { 0% { transform: scale(0.3); } 100% { transform: scale(1); } }
+.timer { flex: 1; min-width: 0; display: flex; align-items: center; gap: 8px; }
+.time-bar { flex: 1; height: 12px; border-radius: 999px; overflow: hidden; border: 2px solid var(--panel-line); background: var(--panel); }
+.time-fill { height: 100%; transform-origin: left center; background: linear-gradient(90deg, var(--pumpkin), var(--gold)); }
+.time-num { min-width: 2ch; text-align: right; font: 400 1.25rem/1 var(--font-display); font-variant-numeric: tabular-nums; }
+.timer.low .time-fill { background: var(--danger); }
+.timer.low .time-num { color: var(--danger); animation: pulse 1s ease-in-out infinite; }
+@keyframes pulse { 50% { transform: scale(1.18); } }
+.combo {
+  flex: none;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 2px solid var(--panel-line);
+  background: var(--panel);
+  color: var(--muted);
+  font: 400 0.95rem/1.2 var(--font-display);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.combo.x2 { background: var(--candy); border-color: var(--candy); color: var(--line); }
+.combo.x3 { background: var(--gold); border-color: var(--gold); color: var(--on-gold); }
+.combo.bump { animation: bump 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); }
+@keyframes bump { 0% { transform: scale(1.45); } 100% { transform: scale(1); } }
+
+.board-wrap { position: relative; flex: 1; min-height: 0; display: grid; place-items: center; }
+.board {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-rows: repeat(3, minmax(0, 1fr));
+  gap: 6px 10px;
+  width: min(100%, 360px);
+  aspect-ratio: 0.9;
+  max-width: 100%;
+}
+.board-wrap.shake .board { animation: shake 0.38s ease-out; }
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-8px); }
+  40% { transform: translateX(7px); }
+  60% { transform: translateX(-5px); }
+  80% { transform: translateX(3px); }
+}
+
+.hole {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  border-radius: 18px;
+  background: none;
+  cursor: pointer;
+  touch-action: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.stone { position: absolute; top: 15%; left: 50%; width: 50%; transform: translateX(-50%); }
+.stone.v1 { left: 44%; }
+.stone.v2 { left: 56%; width: 46%; }
+.stone svg { display: block; width: 100%; height: auto; }
+.st-face { fill: var(--stone); }
+.st-shade { fill: var(--stone-dark); }
+.st-etch { fill: none; stroke: var(--stone-dark); stroke-width: 4; stroke-linecap: round; stroke-linejoin: round; }
+.st-text { fill: var(--stone-dark); font: 400 13px var(--font-display); text-anchor: middle; }
+.mound {
+  position: absolute;
+  left: 3%;
+  right: 3%;
+  bottom: 3%;
+  height: 30%;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at 50% 35%, var(--dirt-hi), var(--dirt) 72%);
+}
+.pit, .rim { position: absolute; left: 13%; right: 13%; bottom: 9%; height: 20%; border-radius: 50%; }
+.pit { background: radial-gradient(ellipse at 50% 75%, #24142B, var(--pit) 62%); }
+.rim { border-bottom: 3px solid var(--rim); pointer-events: none; }
+.window { position: absolute; left: 0; right: 0; top: 0; bottom: 19%; overflow: hidden; pointer-events: none; }
+.mob {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: 70%;
+  aspect-ratio: 1;
+  transform: translate(-50%, 112%);
+  transition: transform 0.15s ease-in;
+}
+.mob.up { transform: translate(-50%, 10%); transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); }
+.mob.k-big { width: 84%; }
+.mob svg { display: block; width: 100%; height: 100%; overflow: visible; transform-origin: 50% 90%; }
+.mob.hit svg { animation: squish 0.26s ease-out; }
+.mob.ouch svg { animation: wobble 0.24s ease-in-out; }
+@keyframes squish { 40% { transform: scale(1.16, 0.82); } }
+@keyframes wobble { 25% { transform: rotate(-9deg) scale(0.94); } 75% { transform: rotate(9deg) scale(0.94); } }
+.pips { position: absolute; top: 0; left: 50%; transform: translateX(-50%); display: flex; gap: 4px; }
+.pips i { width: 10px; height: 10px; border-radius: 50%; border: 2px solid var(--line); background: var(--candy); }
+.pips i.off { background: var(--panel); opacity: 0.6; }
+
+.f-hit { display: none; }
+.hit .f-hit { display: inline; }
+.hit .f-normal { display: none; }
+
+.float {
+  position: absolute;
+  z-index: 3;
+  pointer-events: none;
+  white-space: nowrap;
+  font: 400 clamp(1.3rem, 6vw, 1.9rem)/1 var(--font-display);
+  color: var(--ink);
+  text-shadow: 0 2px 0 var(--line), 0 0 10px rgba(0, 0, 0, 0.45);
+  animation: floatUp 0.85s ease-out forwards;
+}
+.float.x2 { color: var(--candy); }
+.float.x3, .float.gold { color: var(--gold); }
+.float.bonus { color: var(--pumpkin); }
+.float.bad { color: var(--danger); }
+.float.small { font-size: 1rem; color: var(--muted); }
+@keyframes floatUp {
+  0% { opacity: 0; transform: translate(-50%, -30%) scale(0.7); }
+  15% { opacity: 1; transform: translate(-50%, -60%) scale(1.1); }
+  100% { opacity: 0; transform: translate(-50%, -170%) scale(1); }
+}
+
+.banner {
+  position: absolute;
+  z-index: 4;
+  left: 50%;
+  top: 4px;
+  padding: 8px 16px;
+  border-radius: 999px;
+  border: 2px solid var(--panel-line);
+  background: var(--panel);
+  font: 400 1.05rem/1.3 var(--font-display);
+  white-space: nowrap;
+  pointer-events: none;
+  animation: bannerDrop 1.3s ease-out both;
+}
+.banner.big {
+  top: 50%;
+  padding: 12px 26px;
+  border-color: var(--pumpkin-deep);
+  background: var(--pumpkin);
+  color: var(--on-pumpkin);
+  font-size: clamp(1.8rem, 9vw, 2.6rem);
+  animation: bannerPop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+@keyframes bannerDrop {
+  0% { opacity: 0; transform: translate(-50%, -12px); }
+  12%, 80% { opacity: 1; transform: translate(-50%, 0); }
+  100% { opacity: 0; transform: translate(-50%, 0); }
+}
+@keyframes bannerPop {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(0.6); }
+  100% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+}
+
+.countdown {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: grid;
+  place-items: center;
+  background: var(--scrim);
+  pointer-events: none;
+}
+.countdown.go { background: transparent; }
+.cd { font: 400 clamp(5rem, 30vw, 9rem)/1 var(--font-display); color: var(--ink); text-shadow: 0 6px 0 var(--pumpkin-deep); animation: cdPop 0.95s ease-out both; }
+.cd.go { font-size: clamp(2.6rem, 14vw, 4.5rem); color: var(--pumpkin); text-shadow: 0 4px 0 var(--on-pumpkin); animation: cdGo 0.65s ease-out both; }
+@keyframes cdPop {
+  0% { opacity: 0; transform: scale(1.6); }
+  20%, 80% { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(0.9); }
+}
+@keyframes cdGo {
+  0% { opacity: 0; transform: scale(0.6); }
+  25%, 70% { opacity: 1; transform: scale(1.1); }
+  100% { opacity: 0; transform: scale(1.2); }
+}
+
+.overlay { position: absolute; inset: 0; z-index: 6; display: grid; place-items: center; padding: 16px; background: var(--scrim); }
+.dialog {
+  width: min(100%, 340px);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 22px 18px;
+  border-radius: 24px;
+  border: 2px solid var(--panel-line);
+  background: var(--panel);
+  text-align: center;
+}
+.dialog h2 { margin: 0; font: 400 2rem/1.2 var(--font-display); }
+.dialog p { margin: 0 0 6px; color: var(--muted); }
+
+.flash { position: fixed; inset: 0; z-index: 7; background: var(--danger); opacity: 0; pointer-events: none; }
+.flash.on { animation: flash 0.4s ease-out; }
+@keyframes flash { 0% { opacity: 0.38; } 100% { opacity: 0; } }
+
+/* ---------- result ---------- */
+.result-inner {
+  width: 100%;
+  max-width: 420px;
+  margin: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding-block: 8px;
+  text-align: center;
+}
+.result-reason { margin: 0; font: 400 1.2rem/1.3 var(--font-display); color: var(--muted); }
+.result-art { width: 112px; animation: bob 2.6s ease-in-out infinite; }
+.result-art svg { display: block; width: 100%; height: auto; overflow: visible; }
+.rank { margin: 0; font: 400 1.7rem/1.25 var(--font-display); color: var(--pumpkin); text-wrap: balance; }
+.final-score { display: flex; flex-direction: column; align-items: center; line-height: 1; }
+.final-score .label { font-size: 0.8rem; line-height: 1.5; color: var(--muted); }
+.final-score .num { font: 400 clamp(3.2rem, 17vw, 4.4rem)/1 var(--font-display); font-variant-numeric: tabular-nums; }
+.record {
+  margin: 0;
+  padding: 6px 16px;
+  border-radius: 999px;
+  background: var(--gold);
+  color: var(--on-gold);
+  font: 400 1.15rem/1.3 var(--font-display);
+  animation: bump 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.best-line { margin: 0; font-size: 0.9rem; color: var(--muted); }
+.stats { width: 100%; margin: 4px 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.stats div { padding: 10px 8px; border-radius: 16px; border: 2px solid var(--panel-line); background: var(--panel); }
+.stats dt { font-size: 0.8rem; line-height: 1.4; color: var(--muted); }
+.stats dd { margin: 4px 0 0; font: 400 1.7rem/1 var(--font-display); font-variant-numeric: tabular-nums; }
+.result-actions { width: 100%; display: flex; flex-direction: column; gap: 12px; margin-top: 4px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .bat, .bat path, .mascot, .result-art, .timer.low .time-num { animation: none; }
+  .board-wrap.shake .board { animation: none; }
+  .float { animation-duration: 0.6s; }
+}
+</style>
+</head>
+<body>
+<div class="scene" aria-hidden="true">
+  <svg class="stars" viewBox="0 0 100 60" preserveAspectRatio="xMidYMin slice">
+    <circle cx="6" cy="5" r=".27"/><circle cx="14" cy="16" r=".18"/><circle cx="22" cy="8" r=".3"/>
+    <circle cx="31" cy="21" r=".18"/><circle cx="38" cy="4" r=".21"/><circle cx="47" cy="14" r=".27"/>
+    <circle cx="55" cy="26" r=".18"/><circle cx="61" cy="7" r=".18"/><circle cx="68" cy="31" r=".24"/>
+    <circle cx="9" cy="30" r=".21"/><circle cx="19" cy="38" r=".18"/><circle cx="42" cy="33" r=".21"/>
+    <circle cx="94" cy="34" r=".24"/><circle cx="88" cy="44" r=".18"/><circle cx="3" cy="47" r=".18"/>
+    <circle cx="51" cy="44" r=".18"/><circle cx="27" cy="50" r=".21"/><circle cx="74" cy="50" r=".18"/>
+  </svg>
+  <div class="moon"></div>
+  <svg class="bat bat-1" viewBox="0 0 40 16"><path d="M20 6C18 2 15 1 12 2 10 0 6 0 1 4c5 0 7 2 7 5 3-2 6-1 8 2 1-2 2.5-3 4-3s3 1 4 3c2-3 5-4 8-2 0-3 2-5 7-5-5-4-9-4-11-2-3-1-6 0-8 4z"/></svg>
+  <svg class="bat bat-2" viewBox="0 0 40 16"><path d="M20 6C18 2 15 1 12 2 10 0 6 0 1 4c5 0 7 2 7 5 3-2 6-1 8 2 1-2 2.5-3 4-3s3 1 4 3c2-3 5-4 8-2 0-3 2-5 7-5-5-4-9-4-11-2-3-1-6 0-8 4z"/></svg>
+  <svg class="hills" viewBox="0 0 400 120" preserveAspectRatio="none">
+    <path class="hill-back" d="M0 62Q60 26 130 50T260 40T400 46V120H0Z"/>
+    <path class="hill-front" d="M0 88Q90 58 190 80T400 74V120H0Z"/>
+  </svg>
+</div>
+
+<main id="app">
+  <section id="menu" class="screen scroll" aria-label="หน้าแรก">
+    <div class="menu-inner">
+      <div class="menu-top">
+        <p class="eyebrow">Trick or Treat · 31.10</p>
+        <button type="button" id="mute-menu" class="icon-btn mute-btn" aria-label="ปิดเสียง"></button>
+      </div>
+
+      <header class="title-block">
+        <h1><span class="t1">แตะให้ได้</span><span class="t2">ถ้าไม่อยากโดนหลอก</span></h1>
+        <div class="mascot" id="mascot"></div>
+      </header>
+
+      <div class="panel">
+        <h2 class="panel-title" id="level-title">เลือกความยาก</h2>
+        <div class="levels" role="radiogroup" aria-labelledby="level-title">
+          <button type="button" class="level" id="lv-easy" role="radio" data-level="easy" aria-checked="false">
+            <span class="lv-name">ง่าย</span><span class="lv-best">สถิติ <b>0</b></span>
+          </button>
+          <button type="button" class="level" id="lv-normal" role="radio" data-level="normal" aria-checked="true">
+            <span class="lv-name">ปานกลาง</span><span class="lv-best">สถิติ <b>0</b></span>
+          </button>
+          <button type="button" class="level" id="lv-hard" role="radio" data-level="hard" aria-checked="false">
+            <span class="lv-name">ยาก</span><span class="lv-best">สถิติ <b>0</b></span>
+          </button>
+        </div>
+        <button type="button" id="start" class="btn-primary">เริ่มเล่น</button>
+      </div>
+
+      <div class="panel">
+        <h2 class="panel-title">วิธีเล่น</h2>
+        <p class="how-lead">แตะผีให้ทันก่อนมันมุดหนี มีเวลา 60 วินาทีกับ 3 ชีวิต ยิ่งเล่นผียิ่งโผล่เร็ว และระวังแมวดำ มันมาหลอก!</p>
+        <ul class="cast" id="cast">
+          <li><span class="cast-art" data-art="ghost"></span><span class="cast-text"><b>ผีจอมซน</b><span>แตะได้ +10 คะแนน</span></span></li>
+          <li><span class="cast-art" data-art="gold"></span><span class="cast-text"><b>ผีทอง</b><span>นานๆ โผล่ที หายไวมาก แตะได้ +50</span></span></li>
+          <li><span class="cast-art" data-art="big"></span><span class="cast-text"><b>ผียักษ์</b><span>ต้องแตะ 3 ครั้ง ได้ +30</span></span></li>
+          <li><span class="cast-art" data-art="pumpkin"></span><span class="cast-text"><b>ฟักทองวิเศษ</b><span>คืน 1 ชีวิต ถ้าชีวิตเต็มแล้วได้เวลา +5 วินาที</span></span></li>
+          <li><span class="cast-art" data-art="cat"></span><span class="cast-text"><b>แมวดำ</b><span><span class="warn">ห้ามแตะ!</span> แตะแล้วเสีย 1 ชีวิต</span></span></li>
+        </ul>
+        <p class="how-note">แตะโดนติดกัน 5 ครั้ง คะแนน ×2 และ 10 ครั้ง ×3 ถ้าแตะพลาดหรือปล่อยผีหนี คอมโบจะเริ่มนับใหม่ แต่ไม่เสียชีวิต</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="game" class="screen" aria-label="กำลังเล่น" hidden>
+    <div class="hud">
+      <div class="hud-row">
+        <button type="button" id="pause" class="icon-btn" aria-label="หยุดชั่วคราว">
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1.5"/><rect x="14" y="5" width="4" height="14" rx="1.5"/></svg>
+        </button>
+        <div class="score-box"><span class="label">คะแนน</span><span id="score" class="score" aria-live="off">0</span></div>
+        <button type="button" id="mute-game" class="icon-btn mute-btn" aria-label="ปิดเสียง"></button>
+      </div>
+      <div class="hud-row">
+        <div class="lives" id="lives"></div>
+        <div class="timer" id="timer">
+          <div class="time-bar"><div class="time-fill" id="time-fill"></div></div>
+          <span class="time-num" id="time">60</span>
+        </div>
+        <div class="combo" id="combo">คอมโบ 0</div>
+      </div>
+    </div>
+    <div class="board-wrap" id="board-wrap">
+      <div class="board" id="board"></div>
+      <div class="banner" id="banner" hidden></div>
+    </div>
+    <div class="countdown" id="countdown" hidden></div>
+    <div class="overlay" id="pause-layer" hidden>
+      <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="pause-title">
+        <h2 id="pause-title">พักก่อน</h2>
+        <p>ผีรออยู่ตรงนี้ ไม่หนีไปไหน</p>
+        <button type="button" id="resume" class="btn-primary">เล่นต่อ</button>
+        <button type="button" id="quit" class="btn-ghost">กลับหน้าแรก</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="result" class="screen scroll" aria-label="สรุปผล" hidden>
+    <div class="result-inner">
+      <p class="result-reason" id="result-reason">หมดเวลา</p>
+      <div class="result-art" id="result-art"></div>
+      <h2 class="rank" id="rank">นักล่าผีฝึกหัด</h2>
+      <div class="final-score"><span class="label">คะแนนรอบนี้</span><span class="num" id="final-score">0</span></div>
+      <p class="record" id="record" hidden>สถิติใหม่!</p>
+      <p class="best-line" id="best-line">สถิติระดับปานกลาง 0</p>
+      <dl class="stats">
+        <div><dt>จับผีได้</dt><dd id="st-ghosts">0</dd></div>
+        <div><dt>ผีทอง</dt><dd id="st-gold">0</dd></div>
+        <div><dt>ผียักษ์</dt><dd id="st-big">0</dd></div>
+        <div><dt>คอมโบสูงสุด</dt><dd id="st-combo">0</dd></div>
+      </dl>
+      <div class="result-actions">
+        <button type="button" id="again" class="btn-primary">เล่นอีกครั้ง</button>
+        <button type="button" id="home" class="btn-ghost">กลับหน้าแรก</button>
+      </div>
+    </div>
+  </section>
+</main>
+<div class="flash" id="flash"></div>
+
+<script>
+(() => {
+  'use strict';
+
+  // ---------- rules ----------
+  const ROUND_MS = 60000;
+  const LIVES = 3;
+  const BONUS_MS = 5000;
+  // stay = how long a character stays up, gap = time between spawns, max = how many can be up at once.
+  // Each pair goes from the start of the round to the end of the round.
+  const LEVELS = {
+    easy:   { name: 'ง่าย',    stay: [1500, 950], gap: [950, 560], max: [1, 3], cat: 0.12 },
+    normal: { name: 'ปานกลาง', stay: [1150, 720], gap: [760, 430], max: [2, 3], cat: 0.16 },
+    hard:   { name: 'ยาก',     stay: [900, 540],  gap: [600, 330], max: [2, 4], cat: 0.2 },
+  };
+  const KINDS = {
+    ghost:   { weight: 1,    stay: 1,    points: 10 },
+    gold:    { weight: 0.06, stay: 0.6,  points: 50 },
+    big:     { weight: 0.1,  stay: 1.9,  points: 30, hp: 3 },
+    pumpkin: { weight: 0.05, stay: 1.1 },
+    cat:     { stay: 1.15 },
+  };
+  const RANKS = [
+    [1500, 'ราชาผีแห่งคืนฮาโลวีน'],
+    [800, 'นักล่าผีตัวจริง'],
+    [300, 'นักล่าผีฝึกหัด'],
+    [0, 'มือใหม่หัดจับผี'],
+  ];
+  const STORE_KEY = 'tae-hai-dai:v1';
+
+  // ---------- art ----------
+  const LINE = '#2A1F45';
+  const star = (x, y, r, c) => {
+    const pts = [];
+    for (let k = 0; k < 10; k++) {
+      const a = (-90 + k * 36) * Math.PI / 180, rr = k % 2 ? r * 0.45 : r;
+      pts.push((x + rr * Math.cos(a)).toFixed(1) + ',' + (y + rr * Math.sin(a)).toFixed(1));
+    }
+    return `<polygon points="${pts.join(' ')}" fill="${c}"/>`;
+  };
+  const sparkle = (x, y, s, c) =>
+    `<path d="M${x} ${y - s}Q${x + s * 0.18} ${y - s * 0.18} ${x + s} ${y}Q${x + s * 0.18} ${y + s * 0.18} ${x} ${y + s}Q${x - s * 0.18} ${y + s * 0.18} ${x - s} ${y}Q${x - s * 0.18} ${y - s * 0.18} ${x} ${y - s}Z" fill="${c}"/>`;
+
+  function ghostArt(body, { brows = false, fangs = false, extra = '' } = {}) {
+    return `<svg viewBox="0 0 100 100" aria-hidden="true">
+<g fill="${body}" stroke="${LINE}" stroke-width="3" stroke-linejoin="round">
+<ellipse cx="18" cy="60" rx="6" ry="9" transform="rotate(-32 18 60)"/><ellipse cx="82" cy="60" rx="6" ry="9" transform="rotate(32 82 60)"/>
+<path d="M20 92V46C20 25 33 12 50 12S80 25 80 46V92Q72.5 84 65 92Q57.5 100 50 92Q42.5 84 35 92Q27.5 100 20 92Z"/>
+</g>
+<g fill="#FF8FC0" opacity=".75"><ellipse cx="30" cy="57" rx="5" ry="3"/><ellipse cx="70" cy="57" rx="5" ry="3"/></g>
+<g class="f-normal">
+<g fill="${LINE}"><ellipse cx="40" cy="46" rx="5" ry="7"/><ellipse cx="60" cy="46" rx="5" ry="7"/></g>
+<g fill="#fff"><circle cx="41.6" cy="43.4" r="1.8"/><circle cx="61.6" cy="43.4" r="1.8"/></g>
+${brows ? `<path d="M31 33L45 38M69 33L55 38" stroke="${LINE}" stroke-width="3.5" stroke-linecap="round"/>` : ''}
+${fangs
+    ? `<path d="M38 59Q50 72 62 59Z" fill="${LINE}"/><path d="M42 60L45 65.5L48 61ZM58 60L55 65.5L52 61Z" fill="#fff"/>`
+    : `<ellipse cx="50" cy="61" rx="4" ry="5" fill="${LINE}"/>`}
+</g>
+<g class="f-hit">
+<path d="M35 41l9 9M44 41l-9 9M56 41l9 9M65 41l-9 9M42 64q4-4 8 0t8 0" stroke="${LINE}" stroke-width="3.5" stroke-linecap="round" fill="none"/>
+${star(22, 16, 6, '#FFD447')}${star(80, 13, 5, '#FFD447')}${star(53, 5, 4, '#FFD447')}
+</g>
+${extra}
+</svg>`;
+  }
+
+  const ART = {
+    ghost: ghostArt('#F6F3FF'),
+    gold: ghostArt('#FFD447', { extra: sparkle(86, 24, 8, '#FFF5E3') + sparkle(12, 34, 6, '#FFF5E3') }),
+    big: ghostArt('#CDB6FF', { brows: true, fangs: true }),
+    pumpkin: `<svg viewBox="0 0 100 100" aria-hidden="true">
+<path d="M50 32C49 22 51 15 57 9" fill="none" stroke="#3E6B34" stroke-width="6" stroke-linecap="round"/>
+<path d="M56 17C63 10 73 13 74 20C67 21 61 21 56 17Z" fill="#79C35E" stroke="${LINE}" stroke-width="2.5" stroke-linejoin="round"/>
+<g stroke="${LINE}" stroke-width="3">
+<ellipse cx="32" cy="62" rx="20" ry="29" fill="#E36A1C"/><ellipse cx="68" cy="62" rx="20" ry="29" fill="#E36A1C"/>
+<ellipse cx="50" cy="62" rx="21" ry="31" fill="#FF8A2B"/>
+</g>
+<g class="f-normal" fill="#3A1A0A">
+<path d="M35 55L41 45L47 55ZM53 55L59 45L65 55Z"/>
+<path d="M35 66Q50 82 65 66Q58 70 54 68L52 73L48 68Q42 70 35 66Z"/>
+</g>
+<g class="f-hit">
+<path d="M35 54q6-8 12 0M53 54q6-8 12 0" stroke="#3A1A0A" stroke-width="3.5" stroke-linecap="round" fill="none"/>
+<path d="M38 64Q50 82 62 64Z" fill="#3A1A0A"/>
+${sparkle(16, 32, 7, '#FFF5E3')}${sparkle(86, 38, 6, '#FFD447')}
+</g>
+</svg>`,
+    cat: `<svg viewBox="0 0 100 100" aria-hidden="true">
+<path d="M20 94V58C20 44 25 36 32 32L27 10L45 26Q50 25 55 26L73 10L68 32C75 36 80 44 80 58V94Z" fill="#231A33" stroke="#6A58A0" stroke-width="3" stroke-linejoin="round"/>
+<path d="M31 17L40 27L34 30ZM69 17L60 27L66 30Z" fill="#FF8FC0"/>
+<path d="M30 62H17M30 66L18 70M70 62H83M70 66L82 70" stroke="#B7A6E0" stroke-width="1.8" stroke-linecap="round" opacity=".8"/>
+<path d="M47 59H53L50 62.5Z" fill="#FF8FC0"/>
+<path d="M44 65q3 3 6 0q3 3 6 0" stroke="#B7A6E0" stroke-width="2" fill="none" stroke-linecap="round"/>
+<ellipse cx="39" cy="49" rx="7" ry="8" fill="#FFD447"/><ellipse cx="39" cy="49" rx="2.2" ry="6" fill="#1A1426"/>
+<g class="f-normal"><ellipse cx="61" cy="49" rx="7" ry="8" fill="#FFD447"/><ellipse cx="61" cy="49" rx="2.2" ry="6" fill="#1A1426"/></g>
+<g class="f-hit">
+<path d="M55 51q6-7 12 0" stroke="#FFD447" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+<path d="M47.5 66.5Q50 77 52.5 66.5Z" fill="#FF6FAE"/>
+</g>
+</svg>`,
+  };
+
+  const STONES = [
+    `<svg viewBox="0 0 60 64" aria-hidden="true"><path class="st-face" d="M6 64V26C6 12 16 4 30 4S54 12 54 26V64Z"/><path class="st-shade" d="M44 8C50 12 54 18 54 26V64H47V26C47 18 46 12 44 8Z"/><text class="st-text" x="27" y="34">RIP</text></svg>`,
+    `<svg viewBox="0 0 60 64" aria-hidden="true"><path class="st-face" d="M8 64V22L30 6L52 22V64Z"/><path class="st-shade" d="M45 17L52 22V64H45Z"/><path class="st-etch" d="M27 20V44M19 28H35"/></svg>`,
+    `<svg viewBox="0 0 60 64" aria-hidden="true"><path class="st-face" d="M4 64V34Q4 22 16 22H44Q56 22 56 34V64Z"/><path class="st-shade" d="M47 23Q56 25 56 34V64H49V34Q49 27 47 23Z"/><path class="st-etch" d="M22 24l5 8-5 6 6 8"/></svg>`,
+  ];
+
+  const ICON = {
+    soundOn: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/></svg>',
+    soundOff: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M17 9l5 6M22 9l-5 6"/></svg>',
+    heart: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.5C5.5 15 2.5 12 2.5 8.2 2.5 5.3 4.7 3.5 7.2 3.5c2 0 3.8 1.2 4.8 2.9 1-1.7 2.8-2.9 4.8-2.9 2.5 0 4.7 1.8 4.7 4.7 0 3.8-3 6.8-9.5 12.3z"/></svg>',
+  };
+
+  // ---------- state ----------
+  const S = {
+    level: 'normal',
+    muted: false,
+    best: { easy: 0, normal: 0, hard: 0 },
+    phase: 'menu', // menu | countdown | play | paused | ending | result
+    resumeTo: 'play',
+    score: 0, lives: LIVES, combo: 0, maxCombo: 0,
+    timeLeft: ROUND_MS, elapsed: 0, nextSpawn: 0, warned: 0,
+    cd: 0, cdShown: 0, cdToken: 0,
+    endReason: 'time',
+    stats: null,
+    holes: [],
+  };
+
+  const $ = (id) => document.getElementById(id);
+  const ui = {
+    menu: $('menu'), game: $('game'), result: $('result'),
+    start: $('start'), board: $('board'), boardWrap: $('board-wrap'),
+    banner: $('banner'), countdown: $('countdown'), flash: $('flash'),
+    score: $('score'), time: $('time'), timeFill: $('time-fill'), timer: $('timer'),
+    lives: $('lives'), combo: $('combo'),
+    pause: $('pause'), pauseLayer: $('pause-layer'), resume: $('resume'), quit: $('quit'),
+    resultReason: $('result-reason'), resultArt: $('result-art'), rank: $('rank'),
+    finalScore: $('final-score'), record: $('record'), bestLine: $('best-line'),
+    stGhosts: $('st-ghosts'), stGold: $('st-gold'), stBig: $('st-big'), stCombo: $('st-combo'),
+    again: $('again'), home: $('home'),
+  };
+
+  const lerp = (a, b, t) => a + (b - a) * t;
+  const fmt = (n) => Math.round(n).toLocaleString('en-US');
+  const mult = () => (S.combo >= 10 ? 3 : S.combo >= 5 ? 2 : 1);
+  const restartClass = (el, cls) => { el.classList.remove(cls); void el.offsetWidth; el.classList.add(cls); };
+
+  function load() {
+    try {
+      const d = JSON.parse(localStorage.getItem(STORE_KEY) || 'null');
+      if (!d || typeof d !== 'object') return;
+      if (d.best) for (const k of Object.keys(LEVELS)) S.best[k] = Math.max(0, Number(d.best[k]) || 0);
+      if (d.level in LEVELS) S.level = d.level;
+      if (typeof d.muted === 'boolean') S.muted = d.muted;
+    } catch (e) { /* storage unavailable: play without saved scores */ }
+  }
+  function save() {
+    try {
+      localStorage.setItem(STORE_KEY, JSON.stringify({ best: S.best, level: S.level, muted: S.muted }));
+    } catch (e) { /* storage unavailable */ }
+  }
+
+  // ---------- sound (synthesised, no files) ----------
+  const Sound = {
+    ctx: null,
+    master: null,
+    unlock() {
+      try {
+        if (!this.ctx) {
+          const AC = window.AudioContext || window.webkitAudioContext;
+          if (!AC) return;
+          this.ctx = new AC();
+          this.master = this.ctx.createGain();
+          this.master.gain.value = 0.5;
+          this.master.connect(this.ctx.destination);
+        }
+        if (this.ctx.state === 'suspended') this.ctx.resume();
+      } catch (e) { this.ctx = null; }
+    },
+    tone(f1, f2, dur, { type = 'sine', vol = 0.25, at = 0 } = {}) {
+      const t = this.ctx.currentTime + at;
+      const o = this.ctx.createOscillator();
+      const g = this.ctx.createGain();
+      o.type = type;
+      o.frequency.setValueAtTime(f1, t);
+      if (f2 !== f1) o.frequency.exponentialRampToValueAtTime(f2, t + dur);
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(vol, t + 0.012);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      o.connect(g);
+      g.connect(this.master);
+      o.start(t);
+      o.stop(t + dur + 0.02);
+    },
+    meow() {
+      const t = this.ctx.currentTime;
+      const o = this.ctx.createOscillator();
+      const f = this.ctx.createBiquadFilter();
+      const g = this.ctx.createGain();
+      o.type = 'sawtooth';
+      f.type = 'lowpass';
+      f.frequency.value = 1800;
+      f.Q.value = 6;
+      o.frequency.setValueAtTime(480, t);
+      o.frequency.exponentialRampToValueAtTime(860, t + 0.12);
+      o.frequency.exponentialRampToValueAtTime(400, t + 0.4);
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(0.2, t + 0.04);
+      g.gain.setValueAtTime(0.2, t + 0.25);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.42);
+      o.connect(f);
+      f.connect(g);
+      g.connect(this.master);
+      o.start(t);
+      o.stop(t + 0.45);
+    },
+    play(name) {
+      if (S.muted || !this.ctx) return;
+      try {
+        switch (name) {
+          case 'pop': this.tone(500, 1000, 0.11, { type: 'triangle', vol: 0.3 }); break;
+          case 'gold': [784, 988, 1175, 1568].forEach((f, i) => this.tone(f, f, 0.12, { type: 'triangle', vol: 0.22, at: i * 0.055 })); break;
+          case 'bonk': this.tone(260, 150, 0.1, { type: 'square', vol: 0.12 }); break;
+          case 'boss': this.tone(200, 80, 0.22, { type: 'square', vol: 0.14 }); this.tone(600, 1200, 0.15, { type: 'triangle', vol: 0.25, at: 0.05 }); break;
+          case 'pumpkin': this.tone(880, 880, 0.18, { vol: 0.25 }); this.tone(1320, 1320, 0.25, { vol: 0.2, at: 0.08 }); break;
+          case 'cat': this.meow(); break;
+          case 'miss': this.tone(170, 120, 0.07, { vol: 0.12 }); break;
+          case 'tick': this.tone(620, 620, 0.09, { type: 'square', vol: 0.1 }); break;
+          case 'go': this.tone(940, 940, 0.2, { type: 'square', vol: 0.12 }); break;
+          case 'end': [523, 440, 349, 262].forEach((f, i) => this.tone(f, f * 0.98, 0.2, { type: 'triangle', vol: 0.22, at: i * 0.14 })); break;
+          case 'record': [523, 659, 784, 1047, 1319].forEach((f, i) => this.tone(f, f, 0.16, { type: 'triangle', vol: 0.22, at: i * 0.09 })); break;
+        }
+      } catch (e) { /* audio is optional */ }
+    },
+  };
+
+  // ---------- board ----------
+  function buildBoard() {
+    ui.board.innerHTML = '';
+    S.holes = [];
+    for (let i = 0; i < 9; i++) {
+      const v = (i % 3 + Math.floor(i / 3)) % 3;
+      const el = document.createElement('button');
+      el.type = 'button';
+      el.className = 'hole';
+      el.dataset.i = i;
+      el.setAttribute('aria-label', `หลุมที่ ${i + 1}`);
+      el.innerHTML = `<span class="stone v${v}">${STONES[v]}</span><span class="mound"></span><span class="pit"></span><span class="window"><span class="mob"></span></span><span class="rim"></span>`;
+      ui.board.appendChild(el);
+      S.holes.push({ el, mob: el.querySelector('.mob'), kind: null, state: 'empty', t: 0, hp: 0, cool: 0 });
+    }
+  }
+
+  function layoutBoard() {
+    const r = ui.boardWrap.getBoundingClientRect();
+    if (!r.width || !r.height) return;
+    // Board width / height: 0.9 normally, a little taller on tall phone screens.
+    const ratio = Math.min(0.9, Math.max(0.78, r.width / r.height));
+    const w = Math.min(r.width, r.height * ratio, 560);
+    ui.board.style.aspectRatio = String(ratio);
+    ui.board.style.width = w + 'px';
+  }
+
+  function pickKind(cfg) {
+    const active = (kind) => S.holes.some((h) => h.kind === kind && h.state !== 'empty');
+    const cats = S.holes.filter((h) => h.kind === 'cat' && h.state === 'up').length;
+    if (S.elapsed > 1500 && cats < 2 && Math.random() < cfg.cat) return 'cat';
+    const pool = [['ghost', KINDS.ghost.weight]];
+    if (!active('gold')) pool.push(['gold', KINDS.gold.weight]);
+    if (!active('big')) pool.push(['big', KINDS.big.weight]);
+    if (!active('pumpkin') && S.elapsed > 8000) pool.push(['pumpkin', KINDS.pumpkin.weight]);
+    let r = Math.random() * pool.reduce((sum, [, w]) => sum + w, 0);
+    for (const [kind, w] of pool) { if ((r -= w) <= 0) return kind; }
+    return 'ghost';
+  }
+
+  function spawn(p, cfg) {
+    const free = S.holes.filter((h) => h.state === 'empty' && h.cool <= 0);
+    if (!free.length) return false;
+    const h = free[(Math.random() * free.length) | 0];
+    const kind = pickKind(cfg);
+    h.kind = kind;
+    h.hp = KINDS[kind].hp || 1;
+    h.state = 'up';
+    h.t = lerp(cfg.stay[0], cfg.stay[1], p) * KINDS[kind].stay;
+    h.mob.className = 'mob k-' + kind;
+    h.mob.innerHTML = ART[kind] + (kind === 'big' ? '<span class="pips"><i></i><i></i><i></i></span>' : '');
+    void h.mob.offsetWidth;
+    h.mob.classList.add('up');
+    return true;
+  }
+
+  function retreat(h) {
+    h.state = 'down';
+    h.t = 190;
+    h.mob.classList.remove('up');
+  }
+  function clearHole(h) {
+    h.state = 'empty';
+    h.kind = null;
+    h.t = 0;
+    h.cool = 160;
+    h.mob.className = 'mob';
+    h.mob.innerHTML = '';
+  }
+  function hit(h, ms) {
+    h.state = 'hit';
+    h.t = ms;
+    h.mob.classList.add('hit');
+  }
+
+  function tickHole(h, dt) {
+    if (h.state === 'empty') { if (h.cool > 0) h.cool -= dt; return; }
+    h.t -= dt;
+    if (h.t > 0) return;
+    if (h.state === 'up') {
+      if (h.kind !== 'cat' && h.kind !== 'pumpkin') breakCombo(); // a ghost got away
+      retreat(h);
+    } else if (h.state === 'hit') {
+      retreat(h);
+    } else {
+      clearHole(h);
+    }
+  }
+
+  // ---------- feedback ----------
+  function floatText(h, text, cls) {
+    const el = document.createElement('span');
+    el.className = 'float ' + (cls || '');
+    el.textContent = text;
+    el.style.left = h.el.offsetLeft + h.el.offsetWidth / 2 + 'px';
+    el.style.top = h.el.offsetTop + h.el.offsetHeight * 0.3 + 'px';
+    ui.board.appendChild(el);
+    el.addEventListener('animationend', () => el.remove(), { once: true });
+    setTimeout(() => el.remove(), 1600);
+  }
+
+  let bannerTimer = 0;
+  function banner(text, kind = '', ms = 1300) {
+    clearTimeout(bannerTimer);
+    ui.banner.hidden = true;
+    ui.banner.textContent = text;
+    ui.banner.className = 'banner ' + kind;
+    void ui.banner.offsetWidth;
+    ui.banner.hidden = false;
+    if (ms) bannerTimer = setTimeout(() => { ui.banner.hidden = true; }, ms);
+  }
+
+  function buzz() {
+    try { if (navigator.vibrate) navigator.vibrate(160); } catch (e) { /* not supported */ }
+  }
+
+  // ---------- HUD ----------
+  let hud = {};
+  function setText(el, key, val) {
+    if (hud[key] !== val) { hud[key] = val; el.textContent = val; }
+  }
+  function renderHud() {
+    setText(ui.score, 'score', fmt(S.score));
+    const secs = Math.max(0, Math.ceil(S.timeLeft / 1000));
+    setText(ui.time, 'time', String(secs));
+    ui.timeFill.style.transform = `scaleX(${Math.max(0, Math.min(1, S.timeLeft / ROUND_MS))})`;
+    if (hud.low !== secs <= 10) { hud.low = secs <= 10; ui.timer.classList.toggle('low', hud.low); }
+  }
+  function renderLives(lost = -1, gained = -1) {
+    let html = '';
+    for (let i = 0; i < LIVES; i++) {
+      const cls = (i < S.lives ? '' : ' lost') + (i === lost ? ' just' : '') + (i === gained ? ' gain' : '');
+      html += `<span class="heart${cls}">${ICON.heart}</span>`;
+    }
+    ui.lives.innerHTML = html;
+    ui.lives.setAttribute('aria-label', `ชีวิตเหลือ ${S.lives}`);
+  }
+  function renderCombo() {
+    const m = mult();
+    ui.combo.className = 'combo' + (m === 3 ? ' x3' : m === 2 ? ' x2' : '');
+    ui.combo.textContent = `คอมโบ ${S.combo}` + (m > 1 ? ` ×${m}` : '');
+  }
+
+  function addScore(base) {
+    S.combo++;
+    if (S.combo > S.maxCombo) S.maxCombo = S.combo;
+    const m = mult();
+    const pts = base * m;
+    S.score += pts;
+    renderCombo();
+    if (S.combo === 5 || S.combo === 10) restartClass(ui.combo, 'bump');
+    return { pts, cls: m === 3 ? 'x3' : m === 2 ? 'x2' : '' };
+  }
+  function breakCombo() {
+    if (S.combo) { S.combo = 0; renderCombo(); }
+  }
+
+  // ---------- input ----------
+  function tap(i) {
+    if (S.phase !== 'play') return;
+    const h = S.holes[i];
+    if (h.state === 'hit') return;
+    if (h.state !== 'up') {
+      breakCombo();
+      Sound.play('miss');
+      floatText(h, 'พลาด', 'small');
+      return;
+    }
+    switch (h.kind) {
+      case 'ghost':
+      case 'gold': {
+        const { pts, cls } = addScore(KINDS[h.kind].points);
+        S.stats.ghosts++;
+        if (h.kind === 'gold') S.stats.gold++;
+        floatText(h, '+' + pts, h.kind === 'gold' ? 'gold' : cls);
+        Sound.play(h.kind === 'gold' ? 'gold' : 'pop');
+        hit(h, 260);
+        break;
+      }
+      case 'big': {
+        h.hp--;
+        if (h.hp > 0) {
+          const pips = h.mob.querySelectorAll('.pips i');
+          if (pips[h.hp]) pips[h.hp].classList.add('off');
+          restartClass(h.mob, 'ouch');
+          h.t += 140;
+          floatText(h, `อีก ${h.hp}!`, 'small');
+          Sound.play('bonk');
+        } else {
+          const { pts, cls } = addScore(KINDS.big.points);
+          S.stats.ghosts++;
+          S.stats.big++;
+          floatText(h, '+' + pts, cls);
+          Sound.play('boss');
+          hit(h, 320);
+        }
+        break;
+      }
+      case 'pumpkin': {
+        if (S.lives < LIVES) {
+          S.lives++;
+          renderLives(-1, S.lives - 1);
+          floatText(h, '+1 ชีวิต', 'bonus');
+        } else {
+          S.timeLeft += BONUS_MS;
+          floatText(h, '+5 วิ', 'bonus');
+        }
+        Sound.play('pumpkin');
+        hit(h, 300);
+        break;
+      }
+      case 'cat': {
+        S.lives--;
+        breakCombo();
+        renderLives(S.lives);
+        floatText(h, 'โดนหลอก!', 'bad');
+        Sound.play('cat');
+        buzz();
+        restartClass(ui.flash, 'on');
+        restartClass(ui.boardWrap, 'shake');
+        hit(h, 520);
+        if (S.lives <= 0) endRound('lives');
+        break;
+      }
+    }
+  }
+
+  // ---------- round flow ----------
+  let rafId = 0;
+  let lastT = 0;
+  function startLoop() {
+    if (rafId) return;
+    lastT = performance.now();
+    rafId = requestAnimationFrame(frame);
+  }
+  function stopLoop() {
+    cancelAnimationFrame(rafId);
+    rafId = 0;
+  }
+  function frame(now) {
+    rafId = requestAnimationFrame(frame);
+    const dt = Math.min(64, Math.max(0, now - lastT));
+    lastT = now;
+    if (S.phase === 'countdown') updateCountdown(dt);
+    else if (S.phase === 'play') update(dt);
+    else if (S.phase === 'ending') S.holes.forEach((h) => tickHole(h, dt));
+  }
+
+  function showScreen(name) {
+    ui.menu.hidden = name !== 'menu';
+    ui.game.hidden = name !== 'game';
+    ui.result.hidden = name !== 'result';
+  }
+
+  function startRound() {
+    Sound.unlock();
+    Object.assign(S, {
+      score: 0, lives: LIVES, combo: 0, maxCombo: 0,
+      timeLeft: ROUND_MS, elapsed: 0, nextSpawn: 350, warned: 0,
+      stats: { ghosts: 0, gold: 0, big: 0, pumpkins: 0, cats: 0 },
+    });
+    S.holes.forEach(clearHole);
+    ui.board.querySelectorAll('.float').forEach((el) => el.remove());
+    hud = {};
+    showScreen('game');
+    layoutBoard();
+    renderLives();
+    renderCombo();
+    renderHud();
+    ui.pauseLayer.hidden = true;
+    ui.banner.hidden = true;
+    S.phase = 'countdown';
+    S.cd = 3000;
+    S.cdShown = 0;
+    S.cdToken++;
+    startLoop();
+  }
+
+  function setCountdown(text, go) {
+    ui.countdown.className = 'countdown' + (go ? ' go' : '');
+    ui.countdown.innerHTML = `<span class="cd${go ? ' go' : ''}">${text}</span>`;
+    ui.countdown.hidden = false;
+  }
+  function updateCountdown(dt) {
+    S.cd -= dt;
+    const n = Math.ceil(S.cd / 1000);
+    if (n > 0 && n !== S.cdShown) {
+      S.cdShown = n;
+      setCountdown(String(n), false);
+      Sound.play('tick');
+    }
+    if (S.cd <= 0) {
+      S.phase = 'play';
+      setCountdown('แตะเลย!', true);
+      Sound.play('go');
+      const token = S.cdToken;
+      setTimeout(() => { if (S.cdToken === token) ui.countdown.hidden = true; }, 650);
+    }
+  }
+
+  function update(dt) {
+    S.elapsed += dt;
+    S.timeLeft -= dt;
+    const p = Math.min(1, S.elapsed / ROUND_MS);
+    const cfg = LEVELS[S.level];
+    S.holes.forEach((h) => tickHole(h, dt));
+
+    S.nextSpawn -= dt;
+    if (S.nextSpawn <= 0) {
+      const maxUp = Math.round(lerp(cfg.max[0], cfg.max[1], p));
+      const up = S.holes.filter((h) => h.state === 'up').length;
+      if (up < maxUp && spawn(p, cfg)) S.nextSpawn = lerp(cfg.gap[0], cfg.gap[1], p) * (0.75 + Math.random() * 0.5);
+      else S.nextSpawn = 90;
+    }
+
+    if (S.warned < 1 && p >= 1 / 3) { S.warned = 1; banner('ผีเริ่มซนแล้ว!'); }
+    else if (S.warned < 2 && p >= 2 / 3) { S.warned = 2; banner('ผีบุกหนัก! เร็วเข้า'); }
+
+    if (S.timeLeft <= 0) {
+      S.timeLeft = 0;
+      renderHud();
+      endRound('time');
+      return;
+    }
+    renderHud();
+  }
+
+  function endRound(reason) {
+    if (S.phase !== 'play') return;
+    S.phase = 'ending';
+    S.endReason = reason;
+    S.holes.forEach((h) => { if (h.state === 'up') retreat(h); });
+    banner(reason === 'time' ? 'หมดเวลา!' : 'ชีวิตหมดแล้ว!', 'big', 0);
+    Sound.play('end');
+    setTimeout(showResult, 1400);
+  }
+
+  function showResult() {
+    if (S.phase !== 'ending') return;
+    stopLoop();
+    S.phase = 'result';
+    ui.banner.hidden = true;
+    const lv = S.level;
+    const record = S.score > (S.best[lv] || 0);
+    if (record) { S.best[lv] = S.score; save(); }
+    const byCat = S.endReason === 'lives';
+    ui.resultReason.textContent = byCat ? 'ชีวิตหมดแล้ว' : 'หมดเวลา';
+    ui.resultArt.className = 'result-art' + (byCat ? ' hit' : '');
+    ui.resultArt.innerHTML = byCat ? ART.cat : ART.ghost;
+    ui.rank.textContent = byCat ? 'โดนแมวดำหลอกซะแล้ว!' : RANKS.find(([min]) => S.score >= min)[1];
+    ui.finalScore.textContent = fmt(S.score);
+    ui.record.hidden = !record;
+    ui.bestLine.textContent = `สถิติระดับ${LEVELS[lv].name} ${fmt(S.best[lv])}`;
+    ui.stGhosts.textContent = fmt(S.stats.ghosts);
+    ui.stGold.textContent = fmt(S.stats.gold);
+    ui.stBig.textContent = fmt(S.stats.big);
+    ui.stCombo.textContent = fmt(S.maxCombo);
+    showScreen('result');
+    ui.result.scrollTop = 0;
+    if (record) Sound.play('record');
+    renderMenu();
+  }
+
+  function pause() {
+    if (S.phase !== 'play' && S.phase !== 'countdown') return;
+    S.resumeTo = S.phase;
+    S.phase = 'paused';
+    ui.pauseLayer.hidden = false;
+  }
+  function resume() {
+    if (S.phase !== 'paused') return;
+    Sound.unlock();
+    ui.pauseLayer.hidden = true;
+    S.phase = S.resumeTo;
+    lastT = performance.now();
+  }
+  function goMenu() {
+    S.phase = 'menu';
+    S.cdToken++;
+    stopLoop();
+    clearTimeout(bannerTimer);
+    ui.pauseLayer.hidden = true;
+    ui.countdown.hidden = true;
+    ui.banner.hidden = true;
+    S.holes.forEach(clearHole);
+    ui.board.querySelectorAll('.float').forEach((el) => el.remove());
+    renderMenu();
+    showScreen('menu');
+  }
+
+  // ---------- menu ----------
+  function renderMenu() {
+    document.querySelectorAll('.level').forEach((b) => {
+      const on = b.dataset.level === S.level;
+      b.classList.toggle('on', on);
+      b.setAttribute('aria-checked', String(on));
+      b.querySelector('b').textContent = fmt(S.best[b.dataset.level] || 0);
+    });
+    syncMute();
+  }
+  function syncMute() {
+    document.querySelectorAll('.mute-btn').forEach((b) => {
+      b.innerHTML = S.muted ? ICON.soundOff : ICON.soundOn;
+      b.setAttribute('aria-label', S.muted ? 'เปิดเสียง' : 'ปิดเสียง');
+      b.setAttribute('aria-pressed', String(S.muted));
+    });
+  }
+  function toggleMute() {
+    S.muted = !S.muted;
+    Sound.unlock();
+    syncMute();
+    save();
+    Sound.play('pop');
+  }
+
+  function bindUI() {
+    document.querySelectorAll('.level').forEach((b) => {
+      b.addEventListener('click', () => {
+        S.level = b.dataset.level;
+        save();
+        renderMenu();
+      });
+    });
+    document.querySelectorAll('.mute-btn').forEach((b) => b.addEventListener('click', toggleMute));
+    ui.start.addEventListener('click', startRound);
+    ui.again.addEventListener('click', startRound);
+    ui.home.addEventListener('click', goMenu);
+    ui.pause.addEventListener('click', pause);
+    ui.resume.addEventListener('click', resume);
+    ui.quit.addEventListener('click', goMenu);
+
+    ui.board.addEventListener('pointerdown', (e) => {
+      const b = e.target.closest('.hole');
+      if (!b) return;
+      e.preventDefault();
+      Sound.unlock();
+      tap(Number(b.dataset.i));
+    });
+    // Keyboard activation (Enter/Space on a focused hole) arrives as a click with detail 0.
+    ui.board.addEventListener('click', (e) => {
+      if (e.detail !== 0) return;
+      const b = e.target.closest('.hole');
+      if (b) tap(Number(b.dataset.i));
+    });
+    ui.game.addEventListener('contextmenu', (e) => e.preventDefault());
+
+    // Number pad layout: 7 8 9 / 4 5 6 / 1 2 3
+    const KEYS = { 7: 0, 8: 1, 9: 2, 4: 3, 5: 4, 6: 5, 1: 6, 2: 7, 3: 8 };
+    document.addEventListener('keydown', (e) => {
+      if (S.phase === 'play' && e.key in KEYS) { e.preventDefault(); tap(KEYS[e.key]); return; }
+      if (e.key === 'Escape' || e.key === 'p' || e.key === 'P') {
+        if (S.phase === 'paused') resume(); else pause();
+      }
+    });
+    document.addEventListener('visibilitychange', () => { if (document.hidden) pause(); });
+    window.addEventListener('pagehide', pause);
+
+    if ('ResizeObserver' in window) new ResizeObserver(layoutBoard).observe(ui.boardWrap);
+    else window.addEventListener('resize', layoutBoard);
+  }
+
+  function start() {
+    load();
+    $('mascot').innerHTML = ART.ghost;
+    document.querySelectorAll('.cast-art').forEach((el) => { el.innerHTML = ART[el.dataset.art]; });
+    buildBoard();
+    bindUI();
+    renderMenu();
+  }
+
+  const hot = window.claude && window.claude.hot;
+  if (hot && typeof hot.ready === 'function') hot.ready(start);
+  else start();
+})();
+</script>
+</body>
+</html>

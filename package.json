@@ -1,0 +1,11 @@
+{
+  "name": "tae-hai-dai",
+  "version": "1.0.0",
+  "private": true,
+  "description": "แตะให้ได้ ถ้าไม่อยากโดนหลอก - Halloween tap-the-ghost game for mobile browsers",
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "start": "npx --yes serve@14.2.6 public"
+  }
+}
